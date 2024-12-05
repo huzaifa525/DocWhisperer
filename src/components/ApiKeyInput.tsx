@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Key, Eye, EyeOff, Save, Check, Info } from 'lucide-react';
+import { Key, Eye, EyeOff, Save, Check, Info, ExternalLink, AlertCircle } from 'lucide-react';
 
 interface ApiKeyInputProps {
   onApiKeyChange: (apiKey: string) => void;
@@ -7,24 +7,43 @@ interface ApiKeyInputProps {
 
 export function ApiKeyInput({ onApiKeyChange }: ApiKeyInputProps) {
   const [apiKey, setApiKey] = useState(() => {
-    return localStorage.getItem('apiKey') || '';
+    return localStorage.getItem('deepseekApiKey') || '';
   });
   const [showKey, setShowKey] = useState(false);
   const [isSaved, setIsSaved] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (apiKey) {
-      localStorage.setItem('apiKey', apiKey);
+      localStorage.setItem('deepseekApiKey', apiKey);
       onApiKeyChange(apiKey);
     } else {
-      localStorage.removeItem('apiKey');
+      localStorage.removeItem('deepseekApiKey');
       onApiKeyChange('');
     }
   }, [apiKey, onApiKeyChange]);
 
+  const validateApiKey = (key: string): boolean => {
+    if (!key) return true; // Empty is valid (though not useful)
+    return key.startsWith('sk-') && key.length > 3;
+  };
+
   const handleSave = () => {
+    if (!apiKey) {
+      setError(null);
+      setIsSaved(true);
+      setIsEditing(false);
+      return;
+    }
+
+    if (!validateApiKey(apiKey)) {
+      setError('Invalid API key format. DeepSeek API keys must start with "sk-"');
+      return;
+    }
+
+    setError(null);
     setIsSaved(true);
     setIsEditing(false);
   };
@@ -32,6 +51,7 @@ export function ApiKeyInput({ onApiKeyChange }: ApiKeyInputProps) {
   const handleKeyChange = (value: string) => {
     setApiKey(value);
     setIsSaved(false);
+    setError(null);
   };
 
   return (
@@ -50,8 +70,26 @@ export function ApiKeyInput({ onApiKeyChange }: ApiKeyInputProps) {
       </div>
 
       {showInfo && (
-        <div className="mb-3 p-2 bg-blue-50 text-sm text-blue-800 rounded">
-          You can obtain your DeepSeek API key from the DeepSeek platform. This key is required to use the AI features of this application.
+        <div className="mb-3 p-3 bg-blue-50 text-sm text-blue-800 rounded">
+          <p className="mb-2">
+            To use DocWhisperer, you need a DeepSeek API key. Your key helps power our AI features and document analysis capabilities.
+          </p>
+          <a
+            href="https://platform.deepseek.com/api"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 text-blue-600 hover:text-blue-700"
+          >
+            Get your DeepSeek API key
+            <ExternalLink className="w-3 h-3" />
+          </a>
+        </div>
+      )}
+
+      {error && (
+        <div className="mb-3 p-3 bg-red-50 text-sm text-red-800 rounded flex items-center gap-2">
+          <AlertCircle className="w-4 h-4" />
+          {error}
         </div>
       )}
       
@@ -62,8 +100,9 @@ export function ApiKeyInput({ onApiKeyChange }: ApiKeyInputProps) {
               type={showKey ? 'text' : 'password'}
               value={apiKey}
               onChange={(e) => handleKeyChange(e.target.value)}
-              placeholder="Enter your DeepSeek API key"
-              className="w-full pr-10 pl-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="sk-..."
+              className={`w-full pr-10 pl-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500
+                ${error ? 'border-red-300' : 'border-gray-300'}`}
             />
             <button
               onClick={() => setShowKey(!showKey)}
