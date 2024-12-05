@@ -1,7 +1,7 @@
 import { Fragment } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { useAuth } from '../contexts/AuthContext';
-import { LogOut, User, FileText } from 'lucide-react';
+import { LogOut, User } from 'lucide-react';
 
 export function Navbar() {
   const { user, logout } = useAuth();
@@ -11,8 +11,7 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex-shrink-0 flex items-center">
-            <FileText className="h-6 w-6 text-blue-600" />
-            <h1 className="ml-2 text-xl font-bold text-gray-900">DocWhisperer</h1>
+            <h1 className="text-xl font-bold text-gray-900">Document AI</h1>
           </div>
 
           <div className="flex items-center">
